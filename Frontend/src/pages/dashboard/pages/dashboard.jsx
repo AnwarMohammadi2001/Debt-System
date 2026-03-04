@@ -1,7 +1,10 @@
 import React from "react";
+import { CompanyReport } from "./reports";
 
 const dashboard = () => {
-  return <div></div>;
+  return <div>
+    <CompanyReport />
+  </div>;
 };
 
 export default dashboard;

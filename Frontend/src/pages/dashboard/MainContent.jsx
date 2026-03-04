@@ -97,7 +97,7 @@ const MainContent = ({ activeComponent }) => {
   }
 
   return (
-    <div className="min-h-[90vh] bg-gray-50 p-6" dir="rtl">
+    <div className="min-h-[90vh]  p-6" dir="rtl">
       {renderContent()}
     </div>
   );

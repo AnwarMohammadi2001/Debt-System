@@ -33,62 +33,66 @@ const CompanyReport = () => {
   const summary = data?.data?.summary || {};
 
   return (
-    <div className="space-y-6">
+    <div className="p-5">
       <h1 className="text-2xl font-bold text-gray-800">گزارش کلی شرکت</h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mt-5 gap-4">
+        {/* Total Employees */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">تعداد کارمندان</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-xl font-bold text-teal-600">
                 {summary.totalEmployees || 0}
               </p>
             </div>
-            <div className="bg-blue-100 p-3 rounded-full">
-              <FaUsers className="text-blue-600 text-xl" />
+            <div className="bg-white p-3 rounded-md">
+              <FaUsers className="text-teal-600 text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Active Loans */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">قرضه‌های فعال</p>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-xl font-bold text-yellow-600">
                 {summary.totalActiveLoans || 0}
               </p>
             </div>
-            <div className="bg-yellow-100 p-3 rounded-full">
+            <div className="bg-white p-3 rounded-md">
               <FaMoneyBillWave className="text-yellow-600 text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Total Loans Amount */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">مجموع قرضه‌ها</p>
-              <p className="text-2xl font-bold text-green-600">
-                {formatMoney(summary.totalLoanAmount)} AFN
+              <p className="text-base font-bold text-teal-700">
+                {formatMoney(summary.totalLoanAmount || 0)} 
               </p>
             </div>
-            <div className="bg-green-100 p-3 rounded-full">
-              <FaWallet className="text-green-600 text-xl" />
+            <div className="bg-white p-3 rounded-md">
+              <FaWallet className="text-teal-700 text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Total Remaining */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">باقی‌مانده کل</p>
-              <p className="text-2xl font-bold text-red-600">
-                {formatMoney(summary.totalRemainingBalance)} AFN
+              <p className="text-base font-bold text-red-600">
+                {formatMoney(summary.totalRemainingBalance || 0)} 
               </p>
             </div>
-            <div className="bg-red-100 p-3 rounded-full">
+            <div className="bg-white p-3 rounded-md">
               <FaChartLine className="text-red-600 text-xl" />
             </div>
           </div>
@@ -96,17 +100,17 @@ const CompanyReport = () => {
       </div>
 
       {/* Recent Activities */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 mt-6 gap-6">
         {/* Recent Loans */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-4 border-b">
+        <div className="bg-white rounded-md shadow">
+          <div className="p-4 border-b border-gray-200">
             <h2 className="font-bold text-gray-800">آخرین قرضه‌ها</h2>
           </div>
           <div className="p-4">
             {data?.data?.recentActivities?.loans?.length > 0 ? (
               <div className="space-y-3">
                 {data.data.recentActivities.loans.map((loan) => (
-                  <div key={loan.id} className="border rounded p-3">
+                  <div key={loan.id} className="border bg-gray-100 rounded border-gray-200 p-3">
                     <div className="flex justify-between">
                       <span className="font-medium">
                         {loan.Employee?.fullName}
@@ -117,7 +121,7 @@ const CompanyReport = () => {
                     </div>
                     <div className="flex justify-between mt-2">
                       <span className="text-sm text-gray-600">مقدار:</span>
-                      <span className="font-medium text-blue-600">
+                      <span className="font-medium text-teal-700">
                         {formatMoney(loan.amount)} AFN
                       </span>
                     </div>
@@ -141,7 +145,7 @@ const CompanyReport = () => {
             {data?.data?.recentActivities?.payments?.length > 0 ? (
               <div className="space-y-3">
                 {data.data.recentActivities.payments.map((payment) => (
-                  <div key={payment.id} className="border rounded p-3">
+                  <div key={payment.id} className="border  border-gray-200 bg-gray-100 rounded p-3">
                     <div className="flex justify-between">
                       <span className="font-medium">
                         {payment.Loan?.Employee?.fullName}
@@ -154,7 +158,7 @@ const CompanyReport = () => {
                     </div>
                     <div className="flex justify-between mt-2">
                       <span className="text-sm text-gray-600">مبلغ:</span>
-                      <span className="font-medium text-green-600">
+                      <span className="font-medium text-teal-700">
                         {formatMoney(payment.amount)} AFN
                       </span>
                     </div>

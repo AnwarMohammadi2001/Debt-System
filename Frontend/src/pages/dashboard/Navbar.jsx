@@ -94,16 +94,18 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="bg-white text-gray-800 py-2  px-6 grid grid-cols-3  border-gray-200  sticky top-0 z-40 backdrop-blur-sm">
+      <nav className="bg-gray-100 text-gray-800 py-2  px-6 grid grid-cols-3  border-gray-200  sticky top-0 z-40 backdrop-blur-sm">
         {/* Left Section - Logo/Brand */}
         <div className="flex items-center">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-700 rounded-md shadow-lg">
+            <div className="p-2 bg-teal-700 rounded-md shadow-lg">
               <MdDashboard size={20} className="text-white" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-gray-800">مطبعه خوشه</h1>
-              <p className="text-xs text-gray-500">دیتابیس مدیریت مطبعه خوشه</p>
+              <h1 className="text-lg font-bold text-gray-800">چاپخانه تمدن</h1>
+              <p className="text-xs text-gray-500">
+                دیتابیس مدیریت قرضه های کارمندان
+              </p>
             </div>
           </div>
         </div>
@@ -113,7 +115,7 @@ const Navbar = () => {
           <div className="">
             <div className="text-center flex items-center gap-4">
               <div className="text-right flex items-center gap-x-3">
-                <p className="text-xl font-bold text-cyan-800">
+                <p className="text-xl font-bold text-teal-800">
                   {dateInfo.day}
                 </p>
                 <p className="text-sm text-gray-600 font-medium">
@@ -127,21 +129,11 @@ const Navbar = () => {
         {/* Right Section - User Menu & Notifications */}
         <div className="flex items-center justify-end gap-4">
           {/* Notifications Bell */}
-          <div className="relative">
-            <button className="relative p-2 text-gray-600 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-all duration-200 group">
-              <FaBell size={18} />
-              {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-                  {notificationCount}
-                </span>
-              )}
-            </button>
-          </div>
 
           {/* User Profile Dropdown */}
           <div ref={profileDropdownRef} className="relative">
             <button
-              className="flex items-center gap-3 group bg-white hover:bg-gray-50 rounded-md cursor-pointer px-3 py-2 transition-all duration-200 border border-transparent hover:border-cyan-700"
+              className="flex items-center gap-3 group  hover:bg-gray-50 rounded-md cursor-pointer px-3 py-2 transition-all duration-200 border border-transparent hover:border-cyan-700"
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
             >
               <div className="flex items-center gap-3">
@@ -167,7 +159,6 @@ const Navbar = () => {
                         }`
                       : "بارگذاری..."}
                   </p>
-               
                 </div>
 
                 <FaChevronDown
@@ -201,7 +192,7 @@ const Navbar = () => {
                         <div className="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg border-2 border-white shadow-lg">
                           {getInitials(
                             currentUser.first_name,
-                            currentUser.last_name
+                            currentUser.last_name,
                           )}
                         </div>
                       ) : (

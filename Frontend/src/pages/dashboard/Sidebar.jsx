@@ -138,18 +138,7 @@ const Sidebar = ({ setActiveComponent }) => {
       icon: <FaChartPie />,
       description: "گزارش قرضه‌های هر کارمند",
     },
-    {
-      name: "گزارش پرداخت‌ها",
-      value: "paymentReport",
-      icon: <MdOutlinePayments />,
-      description: "گزارش پرداخت‌ها بر اساس تاریخ",
-    },
-    {
-      name: "گزارش قرضه‌ها",
-      value: "loanReport",
-      icon: <FaFileInvoiceDollar />,
-      description: "گزارش قرضه‌های فعال و بسته شده",
-    },
+  
   ];
 
   // Add scroll event listener
@@ -164,15 +153,15 @@ const Sidebar = ({ setActiveComponent }) => {
   }, []);
 
   return (
-    <div className="h-full w-64 flex flex-col bg-gradient-to-b from-gray-900 to-gray-800 text-white overflow-hidden shadow-2xl">
+    <div className="h-full w-64 relative flex flex-col bg-slate-900 text-white overflow-hidden shadow-2xl">
       {/* Fixed Header */}
-      <header className="flex-shrink-0 flex items-center gap-3 p-5 border-b border-gray-700">
+      <header className="flex-shrink-0 flex items-center gap-3 px-5 py-2 border-b border-gray-700">
         <div className="flex items-center justify-center p-1 bg-white rounded-full">
-          <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-full" />
+          <img src="/Tamadon.png" alt="Logo" className="h-8 w-8 rounded-full" />
         </div>
         <div className="flex flex-col">
-          <span className="text-lg font-bold text-cyan-400">
-            سیستم مدیریت قرضه
+          <span className="text-lg font-bold text-teal-500">
+             مدیریت قرضه
           </span>
           <span className="text-xs text-gray-400">کارمندان</span>
         </div>
@@ -191,7 +180,7 @@ const Sidebar = ({ setActiveComponent }) => {
                 onClick={() => handleComponentSelect(item.value)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
                   selectedC === item.value
-                    ? "bg-cyan-600 text-white shadow-lg shadow-cyan-500/30"
+                    ? "bg-teal-700 text-white shadow-lg "
                     : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}
                 title={item.description}
@@ -212,7 +201,7 @@ const Sidebar = ({ setActiveComponent }) => {
                 onClick={() => handleDropdownToggle("reports")}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
                   openReportsMenu
-                    ? "bg-cyan-600 text-white shadow-lg shadow-cyan-500/30"
+                    ? "bg-teal-700 text-white shadow-lg "
                     : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}
               >
@@ -232,7 +221,7 @@ const Sidebar = ({ setActiveComponent }) => {
 
               {/* Reports Sub Menu */}
               {openReportsMenu && (
-                <ul className="mt-1 mr-6 space-y-1 border-r-2 border-cyan-600 pr-2">
+                <ul className="mt-1 mr-6 space-y-1 border-r-2 border-teal-700 pr-2">
                   {reportItems.map((report, index) => (
                     <li key={index}>
                       <button
@@ -241,7 +230,7 @@ const Sidebar = ({ setActiveComponent }) => {
                         }
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-all duration-300 ${
                           selectedC === report.value
-                            ? "bg-cyan-600 text-white"
+                            ? "bg-teal-700 text-white"
                             : "text-gray-400 hover:bg-gray-700 hover:text-white"
                         }`}
                         title={report.description}

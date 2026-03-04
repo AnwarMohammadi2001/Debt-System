@@ -22,9 +22,13 @@ import {
   FaWallet,
   FaSearch,
   FaFilter,
+  FaPrint,
 } from "react-icons/fa";
 import { GiTakeMyMoney } from "react-icons/gi";
 import { MdPayment, MdClose } from "react-icons/md";
+import AnimatedModal from "../components/common/AnimatedModal";
+import SearchableEmployeeSelect from "../components/SearchableEmployeeSelect";
+import LoanPrintReceipt from "../components/LoanPrintReceipt";
 
 const LoansPage = () => {
   const [activeTab, setActiveTab] = useState("active"); // 'active', 'closed', 'create'
@@ -33,6 +37,26 @@ const LoansPage = () => {
   const [showLoanModal, setShowLoanModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  // Add these state variables after your existing useState declarations
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [selectedLoanForPrint, setSelectedLoanForPrint] = useState(null);
+
+  // Add this function to handle print
+  const handlePrintLoan = (loan) => {
+    setSelectedLoanForPrint(loan);
+    setShowPrintModal(true);
+  };
+
+  // Add this to get payments for the selected loan
+  const getLoanPaymentsForPrint = (loanId) => {
+    const loan = activeLoans.find((l) => l.id === loanId);
+    return loan?.LoanPayments || [];
+  };
+
+  // Add this to get employee details for the selected loan
+  const getEmployeeForPrint = (loan) => {
+    return loan?.Employee || null;
+  };
 
   // Form states
   const [loanForm, setLoanForm] = useState({
@@ -198,16 +222,16 @@ const LoansPage = () => {
   }
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className=" p-5" dir="rtl">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between mb-6 items-center">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-          <GiTakeMyMoney className="text-blue-600" />
+          <GiTakeMyMoney className="text-teal-700" />
           مدیریت قرضه‌ها
         </h1>
         <button
           onClick={() => setShowLoanModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition"
+          className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-md flex items-center gap-2 transition"
         >
           <FaPlus />
           <span>قرضه جدید</span>
@@ -216,75 +240,79 @@ const LoansPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Active Loans */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">قرضه‌های فعال</p>
-              <p className="text-2xl font-bold text-yellow-600">
+              <p className="text-xl font-bold text-teal-700">
                 {activeLoansData?.data?.summary?.totalLoans || 0}
               </p>
             </div>
-            <div className="bg-yellow-100 p-3 rounded-full">
-              <FaMoneyBillWave className="text-yellow-600 text-xl" />
+            <div className="bg-white p-3 rounded-md">
+              <FaMoneyBillWave className="text-teal-700 text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Remaining Amount */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">مجموع باقی‌مانده</p>
-              <p className="text-2xl font-bold text-red-600">
+              <p className=" font-bold text-teal-700">
                 {formatMoney(
                   activeLoansData?.data?.summary?.totalRemainingAmount || 0,
                 )}{" "}
-                AFN
+                اف
               </p>
             </div>
-            <div className="bg-red-100 p-3 rounded-full">
-              <FaWallet className="text-red-600 text-xl" />
+            <div className="bg-white p-3 rounded-md">
+              <FaWallet className="text-teal-700 text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Closed Loans */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">قرضه‌های تسویه شده</p>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-xl font-bold text-teal-700">
                 {closedLoans.length}
               </p>
             </div>
-            <div className="bg-green-100 p-3 rounded-full">
-              <FaCheckCircle className="text-green-600 text-xl" />
+            <div className="bg-white p-3 rounded-md">
+              <FaCheckCircle className="text-teal-700 text-xl" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        {/* Employees With Loans */}
+        <div className="bg-gray-200 rounded-md shadow p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">کارمندان دارای قرضه</p>
-              <p className="text-2xl font-bold text-purple-600">
+              <p className="text-xl font-bold text-teal-700">
                 {new Set(activeLoans.map((l) => l.employeeId)).size}
               </p>
             </div>
-            <div className="bg-purple-100 p-3 rounded-full">
-              <FaUser className="text-purple-600 text-xl" />
+            <div className="bg-white p-3 rounded-md">
+              <FaUser className="text-teal-700 text-xl" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b">
+      <div className="bg-white rounded-md mt-6 shadow">
+        <div className="border-b border-gray-200">
           <div className="flex">
             <button
               onClick={() => setActiveTab("active")}
-              className={`px-6 py-3 font-medium text-sm flex items-center gap-2 ${
+              className={`px-6 py-3 font-medium text-sm  cursor-pointer flex items-center gap-2 ${
                 activeTab === "active"
-                  ? "border-b-2 border-blue-600 text-blue-600"
+                  ? "border-b-2 border-teal-600 text-teal-700"
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
@@ -293,9 +321,9 @@ const LoansPage = () => {
             </button>
             <button
               onClick={() => setActiveTab("closed")}
-              className={`px-6 py-3 font-medium text-sm flex items-center gap-2 ${
+              className={`px-6 py-3 font-medium text-sm flex cursor-pointer items-center gap-2 ${
                 activeTab === "closed"
-                  ? "border-b-2 border-blue-600 text-blue-600"
+                  ? "border-b-2 border-teal-600 text-teal-700"
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
@@ -304,9 +332,9 @@ const LoansPage = () => {
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`px-6 py-3 font-medium text-sm flex items-center gap-2 ${
+              className={`px-6 py-3 font-medium text-sm flex cursor-pointer items-center gap-2 ${
                 activeTab === "history"
-                  ? "border-b-2 border-blue-600 text-blue-600"
+                  ? "border-b-2 border-teal-600 text-teal-700"
                   : "text-gray-600 hover:text-gray-800"
               }`}
             >
@@ -317,7 +345,7 @@ const LoansPage = () => {
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b border-gray-200">
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <input
@@ -325,19 +353,10 @@ const LoansPage = () => {
                 placeholder="جستجو بر اساس نام کارمند یا مبلغ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-2 pr-10 border rounded-lg"
+                className="w-full p-3 bg-gray-200 border-gray-300 rounded-md focus:ring-1 focus:ring-teal-700 focus:border-transparent focus:outline-none"
               />
               <FaSearch className="absolute left-3 top-3 text-gray-400" />
             </div>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="p-2 border rounded-lg"
-            >
-              <option value="all">همه قرضه‌ها</option>
-              <option value="high">باقی‌مانده زیاد (بیش از ۱۰۰۰۰)</option>
-              <option value="low">باقی‌مانده کم (کمتر از ۱۰۰۰۰)</option>
-            </select>
           </div>
         </div>
 
@@ -350,16 +369,16 @@ const LoansPage = () => {
                 filteredActiveLoans.map((loan) => (
                   <div
                     key={loan.id}
-                    className="border rounded-lg p-4 hover:shadow-md transition"
+                    className="border border-gray-200 rounded-md p-4 hover:shadow-md transition"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className="bg-blue-100 p-2 rounded-full">
-                            <FaUser className="text-blue-600" />
+                          <div className="bg-teal-700 p-2 rounded-full">
+                            <FaUser className="text-white" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-gray-800">
+                            <h3 className="font-bold text-gray-700">
                               {loan.Employee?.fullName}
                             </h3>
                             <p className="text-sm text-gray-600">
@@ -368,16 +387,16 @@ const LoansPage = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                        <div className="grid grid-cols-2  md:grid-cols-6 gap-4 mt-3">
                           <div>
-                            <p className="text-xs text-gray-500">مبلغ قرضه</p>
-                            <p className="font-bold text-blue-600">
+                            <p className="text-sm text-gray-500">مبلغ قرضه</p>
+                            <p className="font-bold text-teal-700">
                               {formatMoney(loan.amount)} AFN
                             </p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500">باقی‌مانده</p>
-                            <p className="font-bold text-yellow-600">
+                            <p className="font-bold text-red-600">
                               {formatMoney(loan.remainingAmount)} AFN
                             </p>
                           </div>
@@ -390,7 +409,9 @@ const LoansPage = () => {
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500">درصد پرداخت</p>
+                            <p className="text-xs text-gray-500">
+                              فیصدی پرداخت
+                            </p>
                             <p className="text-sm font-medium">
                               {(
                                 ((loan.amount - loan.remainingAmount) /
@@ -399,6 +420,32 @@ const LoansPage = () => {
                               ).toFixed(1)}
                               %
                             </p>
+                          </div>
+                          <div className="flex gap-2 col-span-2 justify-end">
+                            <button
+                              onClick={() =>
+                                handleSelectLoanForPayment(loan.id)
+                              }
+                              className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-md text-xs flex items-center gap-1"
+                            >
+                              <MdPayment />
+                              پرداخت
+                            </button>
+                            <button
+                              onClick={() => setSelectedLoan(loan.id)}
+                              className="bg-sky-700 hover:bg-sky-800 text-white px-4 py-2 rounded-md text-xs flex items-center gap-1"
+                            >
+                              <FaHistory />
+                              تاریخچه
+                            </button>
+                            <button
+                              onClick={() => handlePrintLoan(loan)}
+                              className="bg-purple-700 hover:bg-purple-800 text-white px-2 py-2 rounded-md text-xs flex items-center gap-1"
+                              title="چاپ گزارش"
+                            >
+                              <FaPrint />
+                              چاپ
+                            </button>
                           </div>
                         </div>
 
@@ -409,46 +456,41 @@ const LoansPage = () => {
                           </p>
                         )}
                       </div>
-
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSelectLoanForPayment(loan.id)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-1"
-                        >
-                          <MdPayment />
-                          پرداخت
-                        </button>
-                        <button
-                          onClick={() => setSelectedLoan(loan.id)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-1"
-                        >
-                          <FaHistory />
-                          تاریخچه
-                        </button>
-                      </div>
                     </div>
 
                     {/* Show payment history if this loan is selected */}
                     {selectedLoan === loan.id && (
-                      <div className="mt-4 pt-4 border-t">
-                        <h4 className="font-medium mb-3 flex items-center gap-2">
-                          <FaHistory className="text-blue-600" />
-                          تاریخچه پرداخت‌ها
-                        </h4>
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="font-medium flex items-center gap-2">
+                            <FaHistory className="text-teal-600" />
+                            تاریخچه پرداخت‌ها
+                          </h4>
+
+                          {/* Close history */}
+                          <button
+                            onClick={() => setSelectedLoan(null)}
+                            className="text-gray-500 hover:text-red-500 text-2xl font-bold"
+                          >
+                            ×
+                          </button>
+                        </div>
                         {selectedLoanPayments.length > 0 ? (
                           <div className="space-y-2">
-                            {selectedLoanPayments.map((payment) => (
+                            {selectedLoanPayments.map((payment, index) => (
                               <div
                                 key={payment.id}
-                                className="flex justify-between items-center bg-gray-50 p-2 rounded"
+                                className="flex justify-between items-center bg-gray-100 p-3 rounded"
                               >
+                                <span>{index + 1}</span>
+
+                                <span className="font-medium text-green-600">
+                                  {formatMoney(payment.amount)} AFN
+                                </span>
                                 <span>
                                   {new Date(
                                     payment.paymentDate,
                                   ).toLocaleDateString("fa-AF")}
-                                </span>
-                                <span className="font-medium text-green-600">
-                                  {formatMoney(payment.amount)} AFN
                                 </span>
                               </div>
                             ))}
@@ -478,7 +520,7 @@ const LoansPage = () => {
                 filteredClosedLoans.map((loan) => (
                   <div
                     key={loan.id}
-                    className="border rounded-lg p-4 bg-gray-50"
+                    className="border border-gray-200 rounded-lg p-4 bg-gray-50"
                   >
                     <div className="flex justify-between items-start">
                       <div>
@@ -523,10 +565,13 @@ const LoansPage = () => {
           {activeTab === "history" && (
             <div className="space-y-4">
               {activeLoans.map((loan) => (
-                <div key={loan.id} className="border rounded-lg p-4">
+                <div
+                  key={loan.id}
+                  className="border border-gray-200 rounded-lg p-4"
+                >
                   <div className="flex justify-between items-center mb-3">
                     <div className="flex items-center gap-2">
-                      <FaUser className="text-blue-600" />
+                      <FaUser className="text-teal-700" />
                       <span className="font-medium">
                         {loan.Employee?.fullName}
                       </span>
@@ -537,7 +582,7 @@ const LoansPage = () => {
                           selectedLoan === loan.id ? null : loan.id,
                         )
                       }
-                      className="text-blue-600 text-sm"
+                      className="text-teal-700 text-sm"
                     >
                       {selectedLoan === loan.id ? "بستن" : "نمایش پرداخت‌ها"}
                     </button>
@@ -577,8 +622,14 @@ const LoansPage = () => {
 
       {/* Create Loan Modal */}
       {showLoanModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <AnimatedModal
+          isOpen={showLoanModal}
+          onClose={() => {
+            setShowLoanModal(false);
+            resetForm();
+          }}
+        >
+          <div className="bg-white rounded-lg p-6 w-full ">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800">ثبت قرضه جدید</h2>
               <button
@@ -590,26 +641,11 @@ const LoansPage = () => {
             </div>
 
             <form onSubmit={handleLoanSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  انتخاب کارمند <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={loanForm.employeeId}
-                  onChange={(e) =>
-                    setLoanForm({ ...loanForm, employeeId: e.target.value })
-                  }
-                  className="w-full p-2 border rounded-lg"
-                  required
-                >
-                  <option value="">انتخاب کنید</option>
-                  {employees?.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.fullName} - {emp.position}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <SearchableEmployeeSelect
+                employees={employees}
+                loanForm={loanForm}
+                setLoanForm={setLoanForm}
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -621,7 +657,7 @@ const LoansPage = () => {
                   onChange={(e) =>
                     setLoanForm({ ...loanForm, amount: e.target.value })
                   }
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-3 bg-gray-200 border-gray-300 rounded-md focus:ring-1 focus:ring-teal-700 focus:border-transparent focus:outline-none"
                   required
                 />
               </div>
@@ -637,7 +673,7 @@ const LoansPage = () => {
                     setLoanForm({ ...loanForm, loanDate: e.target.value })
                   }
                   max={new Date().toISOString().split("T")[0]}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-3 bg-gray-200 border-gray-300 rounded-md focus:ring-1 focus:ring-teal-700 focus:border-transparent focus:outline-none"
                   required
                 />
               </div>
@@ -651,8 +687,8 @@ const LoansPage = () => {
                   onChange={(e) =>
                     setLoanForm({ ...loanForm, description: e.target.value })
                   }
-                  rows="3"
-                  className="w-full p-2 border rounded-lg"
+                  rows="1"
+                  className="w-full p-3 bg-gray-200 border-gray-300 rounded-md focus:ring-1 focus:ring-teal-700 focus:border-transparent focus:outline-none"
                   placeholder="دلیل قرضه..."
                 />
               </div>
@@ -661,7 +697,7 @@ const LoansPage = () => {
                 <button
                   type="submit"
                   disabled={createLoanMutation.isLoading}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition disabled:bg-blue-300"
+                  className="flex-1 bg-teal-700 hover:bg-teal-800 text-white py-2 rounded-md transition disabled:bg-teal-300"
                 >
                   {createLoanMutation.isLoading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -675,24 +711,41 @@ const LoansPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowLoanModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg transition"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-md transition"
                 >
                   انصراف
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </AnimatedModal>
       )}
 
       {/* Payment Modal */}
       {showPaymentModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <AnimatedModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            resetPaymentForm();
+          }}
+        >
+          <div className="bg-white rounded-md p-6 w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-800">
-                ثبت پرداخت قسط
+                ثبت پرداختی قرضه
               </h2>
+              {selectedLoan && (
+                <div className="flex items-center gap-x-3">
+                  <p className="text-xs text-gray-500">باقی‌مانده</p>
+                  <p className="font-bold text-red-600">
+                    {formatMoney(
+                      activeLoans.find((l) => l.id === selectedLoan)
+                        ?.remainingAmount || 0,
+                    )}{" "}
+                  </p>
+                </div>
+              )}
               <button
                 onClick={() => {
                   setShowPaymentModal(false);
@@ -707,7 +760,7 @@ const LoansPage = () => {
             <form onSubmit={handlePaymentSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  مبلغ پرداخت (افغانی) <span className="text-red-500">*</span>
+                  مبلغ پرداخت <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -715,7 +768,7 @@ const LoansPage = () => {
                   onChange={(e) =>
                     setPaymentForm({ ...paymentForm, amount: e.target.value })
                   }
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-3 bg-gray-200 border-gray-300 rounded-md focus:ring-1 focus:ring-teal-700 focus:border-transparent focus:outline-none"
                   required
                   autoFocus
                 />
@@ -735,7 +788,7 @@ const LoansPage = () => {
                     })
                   }
                   max={new Date().toISOString().split("T")[0]}
-                  className="w-full p-2 border rounded-lg"
+                  className="w-full p-3 bg-gray-200 border-gray-300 rounded-md focus:ring-1 focus:ring-teal-700 focus:border-transparent focus:outline-none"
                 />
               </div>
 
@@ -743,7 +796,7 @@ const LoansPage = () => {
                 <button
                   type="submit"
                   disabled={paymentMutation.isLoading}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition disabled:bg-green-300"
+                  className="flex-1 bg-teal-700 hover:bg-teal-800 text-white py-2 rounded-md transition disabled:bg-teal-300"
                 >
                   {paymentMutation.isLoading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -760,17 +813,30 @@ const LoansPage = () => {
                     setShowPaymentModal(false);
                     resetPaymentForm();
                   }}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg transition"
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-gray-100 py-2 rounded-md transition"
                 >
                   انصراف
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        </AnimatedModal>
+      )}
+      {showPrintModal && selectedLoanForPrint && (
+        <LoanPrintReceipt
+          isOpen={showPrintModal}
+          onClose={() => {
+            setShowPrintModal(false);
+            setSelectedLoanForPrint(null);
+          }}
+          loan={selectedLoanForPrint}
+          payments={getLoanPaymentsForPrint(selectedLoanForPrint.id)}
+          employee={getEmployeeForPrint(selectedLoanForPrint)}
+          autoPrint={false}
+        />
       )}
     </div>
   );
-};
+};;
 
 export default LoansPage;

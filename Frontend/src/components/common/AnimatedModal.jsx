@@ -1,4 +1,5 @@
 import React from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const backdropVariants = {
@@ -33,12 +34,23 @@ const modalVariants = {
   },
 };
 
+
+
+
 const AnimatedModal = ({
   isOpen,
   onClose,
   children,
   maxWidth = "max-w-lg",
 }) => {
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
   return (
     <AnimatePresence>
       {isOpen && (
