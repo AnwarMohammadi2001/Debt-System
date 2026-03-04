@@ -1,93 +1,106 @@
 import { useSelector } from "react-redux";
 import Dashboard from "./pages/dashboard";
-import Report from "./pages/reports";
-import Orders from "../dashboard/pages/orders/Orders";
-import OrdersList from "../dashboard/pages/orders/OrdersList";
-import AddUser from "./pages/AddUser";
-import CustomerManager from "../CustomerManager";
-import Order_list from "../dashboard/pages/orders/Order_list";
-import OrderCopyList from "./pages/orders/OrderCopyList";
-import OrderPrinted from "./pages/orders/OrderPrinted";
-import SellerManager from "./pages/Seller/SellerManager";
-import StockManager from "./StockManager/StockManager";
-import CustomerStockList from "./StockManager/CustomerStockList";
-import ExpenseManager from "./pages/expenseManager/ExpenseManager";
-import StaffManagement from "./pages/Staff/StaffManagement";
-import DashboardHome from "./pages/report/DashboardHome";
-import OverallReportComponent from "../../components/staff/OverallReportComponent";
+
+import EmployeesPage from "../EmployeesPage";
+import WalletPage from "../WalletPage";
+import {
+  CompanyReport,
+  EmployeeReport,
+  LoanReport,
+  PaymentReport,
+} from "./pages/reports";
+import LoansPage from "../LoansPage";
 const MainContent = ({ activeComponent }) => {
   const { currentUser } = useSelector((state) => state.user);
 
   const userRole = currentUser?.role;
 
   const renderContent = () => {
-    // ✅ Reception → فقط Dashboard
+    // ✅ Reception → دسترسی به همه صفحات سیستم قرضه
     if (userRole === "reception") {
-      if (activeComponent !== "home" && activeComponent !== "dashboard") {
+      // اگر کامپوننت فعال نباشد، داشبورد را نشان بده
+      if (!activeComponent || activeComponent === "home") {
         return <Dashboard />;
       }
     }
 
-    // 👑 Admin → پیش فرض Orders
+    // 👑 Admin → دسترسی کامل
     if (userRole === "admin") {
-      if (
-        !activeComponent ||
-        activeComponent === "home" ||
-        activeComponent === "dashboard"
-      ) {
-        return <Orders />;
+      if (!activeComponent || activeComponent === "home") {
+        return <Dashboard />;
       }
     }
 
+    // 🎯 مسیریابی بر اساس کامپوننت فعال
     switch (activeComponent) {
+      // ========== صفحات اصلی ==========
+      case "dashboard":
+        return <Dashboard />;
+
+      case "employees":
+        return <EmployeesPage />;
+
+      case "wallet":
+        return <WalletPage />;
+
+      case "loans":
+        return <LoansPage />;
+
+      // ========== صفحات گزارشات ==========
+      case "companyReport":
+        return <CompanyReport />;
+
+      case "employeeReport":
+        return <EmployeeReport />;
+
+      case "paymentReport":
+        return <PaymentReport />;
+
+      case "loanReport":
+        return <LoanReport />;
+
+      // ========== برای سازگاری با نسخه قبلی ==========
       case "report":
-        return <Report />;
-
-      case "CustomerManager":
-        return <CustomerManager />;
-
-      case "SellerManager":
-        return <SellerManager />;
+        return <CompanyReport />;
 
       case "StaffManager":
-        return <StaffManagement />;
+        return <EmployeesPage />;
 
-      case "Orders":
-        return <Orders />;
-
-      case "Order_Print_list":
-        return <Order_list />;
-
-      case "Order_Copy_list":
-        return <OrderCopyList />;
-
-      case "Order_Printed":
-        return <OrderPrinted />;
-      case "StaffReports":
-        return <OverallReportComponent />;
-
-      case "OrdersList":
-        return <OrdersList />;
-
-      case "StockManager":
-        return <StockManager />;
-
-      case "CustomerStock":
-        return <CustomerStockList />;
-
-      case "ExpenseManager":
-        return <ExpenseManager />;
-
-      case "AddUser":
-        return <AddUser />;
-
+      // ========== اگر هیچکدام مطابقت نداشت ==========
       default:
-        // ⭐ Default Page
-        return userRole === "admin" ? <Orders /> : <DashboardHome />;
+        // اگر activeComponent مقدار داشته باشد ولی در switch نباشد
+        if (activeComponent) {
+          console.warn(`Component not found: ${activeComponent}`);
+        }
+        // برگشت به داشبورد
+        return <Dashboard />;
     }
   };
 
-  return <div className="min-h-[90vh] bg-white">{renderContent()}</div>;
+  // اطمینان از اینکه کاربر دسترسی لازم را دارد
+  const hasAccess = () => {
+    if (userRole === "admin" || userRole === "reception") {
+      return true;
+    }
+    return false;
+  };
+
+  if (!hasAccess()) {
+    return (
+      <div className="min-h-[90vh] bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">خطای دسترسی</h2>
+          <p className="text-gray-600">شما مجوز دسترسی به این بخش را ندارید</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-[90vh] bg-gray-50 p-6" dir="rtl">
+      {renderContent()}
+    </div>
+  );
 };
 
 export default MainContent;

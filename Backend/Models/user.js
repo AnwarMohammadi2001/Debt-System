@@ -1,5 +1,5 @@
 import { DataTypes } from "sequelize";
-import sequelize from "../dbconnection.js";
+import sequelize from "../config/database.js";
 
 const User = sequelize.define(
   "User",
@@ -37,7 +37,7 @@ const User = sequelize.define(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default User;

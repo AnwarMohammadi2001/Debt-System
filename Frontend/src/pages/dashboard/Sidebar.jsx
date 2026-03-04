@@ -4,42 +4,28 @@ import { signOutSuccess } from "../../state/userSlice/userSlice";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import { FaCheckCircle, FaRegCopy } from "react-icons/fa";
-import { FiPrinter } from "react-icons/fi";
-import { FaListUl } from "react-icons/fa6";
-import { PiListChecksLight } from "react-icons/pi";
-import { MdOutlineStore } from "react-icons/md";
-import { GiExpense } from "react-icons/gi";
+import {
+  FaHome,
+  FaUsers,
+  FaWallet,
+  FaMoneyBillWave,
+  FaChartPie,
+  FaSignOutAlt,
+  FaFileInvoiceDollar,
+} from "react-icons/fa";
 import {
   MdOutlineDashboardCustomize,
-  MdAddShoppingCart,
-  MdFormatListNumberedRtl,
   MdKeyboardArrowDown,
-  MdOutlinePayments,
   MdOutlineAssessment,
-  MdAttachMoney,
-  MdOutlinePeopleAlt,
+  MdOutlinePayments,
 } from "react-icons/md";
-import {
-  FaList,
-  FaUsers,
-  FaSignOutAlt,
-  FaShoppingBag,
-  FaUserTie,
-  FaFileInvoiceDollar,
-  FaChartPie,
-} from "react-icons/fa";
-import { CgUserList } from "react-icons/cg";
-import { LucideUserRoundPlus } from "lucide-react";
-import { IoIosAdd } from "react-icons/io";
-import { MdPayments } from "react-icons/md";
-import { RiUserStarFill } from "react-icons/ri";
+import { PiUsersThree } from "react-icons/pi";
+import { GiTakeMyMoney } from "react-icons/gi";
+import { BiSolidReport } from "react-icons/bi";
 
 const Sidebar = ({ setActiveComponent }) => {
-  const [selectedC, setSelectedC] = useState("home");
-  const [openStaffMenu, setOpenStaffMenu] = useState(false);
-  const [openOrdersMenu, setOpenOrdersMenu] = useState(false);
-  const [openStockMenu, setOpenStockMenu] = useState(false);
+  const [selectedC, setSelectedC] = useState("dashboard");
+  const [openReportsMenu, setOpenReportsMenu] = useState(false);
   const [lastOpenedMenu, setLastOpenedMenu] = useState(null);
 
   const sidebarRef = useRef(null);
@@ -49,74 +35,48 @@ const Sidebar = ({ setActiveComponent }) => {
   const { currentUser } = useSelector((state) => state.user);
   const MySwal = withReactContent(Swal);
 
-  // Function to close all dropdowns except the specified one
+  // Close all dropdowns except the specified one
   const closeOtherDropdowns = (menuToKeepOpen) => {
-    if (menuToKeepOpen !== "orders") setOpenOrdersMenu(false);
-    if (menuToKeepOpen !== "staff") setOpenStaffMenu(false);
-    if (menuToKeepOpen !== "stock") setOpenStockMenu(false);
+    if (menuToKeepOpen !== "reports") setOpenReportsMenu(false);
     setLastOpenedMenu(menuToKeepOpen);
   };
 
-  // Function to handle dropdown toggle with auto-close of others
+  // Handle dropdown toggle
   const handleDropdownToggle = (menuType) => {
-    // Toggle the clicked menu
     let shouldOpen = false;
 
     switch (menuType) {
-      case "staff":
-        shouldOpen = !openStaffMenu;
-        setOpenStaffMenu(shouldOpen);
-        break;
-      case "orders":
-        shouldOpen = !openOrdersMenu;
-        setOpenOrdersMenu(shouldOpen);
-        break;
-      case "stock":
-        shouldOpen = !openStockMenu;
-        setOpenStockMenu(shouldOpen);
+      case "reports":
+        shouldOpen = !openReportsMenu;
+        setOpenReportsMenu(shouldOpen);
         break;
       default:
         break;
     }
 
-    // If opening a menu, close others
     if (shouldOpen) {
       closeOtherDropdowns(menuType);
     } else {
-      // If closing a menu, clear the last opened
       setLastOpenedMenu(null);
     }
   };
 
-  // Function to handle component selection
+  // Handle component selection
   const handleComponentSelect = (componentValue) => {
     setSelectedC(componentValue);
     setActiveComponent(componentValue);
-    closeOtherDropdowns(null);
+    setOpenReportsMenu(false);
   };
 
-  // Function to handle sub-item click
+  // Handle sub-item click
   const handleSubItemClick = (componentValue, parentMenu) => {
     setSelectedC(componentValue);
     setActiveComponent(componentValue);
     setLastOpenedMenu(parentMenu);
 
-    // Ensure parent menu stays open
     switch (parentMenu) {
-      case "orders":
-        setOpenOrdersMenu(true);
-        setOpenStaffMenu(false);
-        setOpenStockMenu(false);
-        break;
-      case "staff":
-        setOpenStaffMenu(true);
-        setOpenOrdersMenu(false);
-        setOpenStockMenu(false);
-        break;
-      case "stock":
-        setOpenStockMenu(true);
-        setOpenOrdersMenu(false);
-        setOpenStaffMenu(false);
+      case "reports":
+        setOpenReportsMenu(true);
         break;
       default:
         break;
@@ -141,81 +101,58 @@ const Sidebar = ({ setActiveComponent }) => {
     });
   };
 
-  // Staff Management Menu Items
-  const staffComponents = [
+  // Main Menu Items for Employee Loan Management System
+  const mainMenuItems = [
     {
-      name: "لیست کارمندان",
-      value: "StaffManager",
-      icon: <FaUsers />,
-      description: "مشاهده و مدیریت لیست کارمندان",
+      name: "داشبورد اصلی",
+      value: "dashboard",
+      icon: <FaHome />,
+      description: "مشاهده آمار و اطلاعات کلی",
     },
     {
-      name: "گزارشات کارمندان",
-      value: "StaffReports",
+      name: "مدیریت کارمندان",
+      value: "employees",
+      icon: <PiUsersThree />,
+      description: "ثبت و مدیریت اطلاعات کارمندان",
+    },
+
+    {
+      name: "مدیریت قرضه‌ها",
+      value: "loans",
+      icon: <GiTakeMyMoney />,
+      description: "مشاهده و مدیریت قرضه‌های فعال و بسته شده",
+    },
+  ];
+
+  // Report Sub-menu Items
+  const reportItems = [
+    {
+      name: "گزارش کلی شرکت",
+      value: "companyReport",
+      icon: <MdOutlineAssessment />,
+      description: "گزارش کلی از وضعیت مالی شرکت",
+    },
+    {
+      name: "گزارش کارمندان",
+      value: "employeeReport",
       icon: <FaChartPie />,
-      description: "گزارشات کلی کارمندان",
+      description: "گزارش قرضه‌های هر کارمند",
     },
-  ];
-
-  // Order Menu Items
-  const orderComponents = [
-    { name: "سفارش جدید", value: "Orders", icon: <MdAddShoppingCart /> },
-    { name: "سفارشات چاپ", value: "Order_Print_list", icon: <FiPrinter /> },
-    { name: "سفارشات کاپی", value: "Order_Copy_list", icon: <FaRegCopy /> },
     {
-      name: "سفارشات چاپ شده",
-      value: "Order_Printed",
-      icon: <FaCheckCircle />,
+      name: "گزارش پرداخت‌ها",
+      value: "paymentReport",
+      icon: <MdOutlinePayments />,
+      description: "گزارش پرداخت‌ها بر اساس تاریخ",
     },
-    { name: "همه سفارشات", value: "OrdersList", icon: <FaListUl /> },
-  ];
-
-  // Other Components (excluding staff which is now a dropdown)
-  const otherComponents = [
-    { name: "مدیریت مشتریان", value: "CustomerManager", icon: <CgUserList /> },
     {
-      name: "مدیریت فروشنده ها",
-      value: "SellerManager",
-      icon: <MdOutlineStore />,
+      name: "گزارش قرضه‌ها",
+      value: "loanReport",
+      icon: <FaFileInvoiceDollar />,
+      description: "گزارش قرضه‌های فعال و بسته شده",
     },
-    { name: "مدیریت مصارف", value: "ExpenseManager", icon: <GiExpense /> },
   ];
 
-  // Get accessible components based on user role
-  let accessibleOrders = [];
-  let accessibleStaff = [];
-  let accessibleOthers = [];
-  let hasHomeAccess = false;
-
- if (currentUser && currentUser.role) {
-   const userRole = currentUser.role;
-
-   // 👑 Admin → همه صفحات به جز Home
-   if (userRole === "admin") {
-     accessibleOrders = orderComponents;
-     accessibleStaff = staffComponents;
-     accessibleOthers = otherComponents;
-     hasHomeAccess = false; // ❌ Home حذف شد
-   }
-
-   // 👔 Reception → فقط Home
-   else if (userRole === "reception") {
-     accessibleOrders = [];
-     accessibleStaff = [];
-     accessibleOthers = [];
-     hasHomeAccess = true; // ✅ فقط Home
-   }
-
-   // سایر کاربران → هیچ
-   else {
-     accessibleOrders = [];
-     accessibleStaff = [];
-     accessibleOthers = [];
-     hasHomeAccess = false;
-   }
- }
-
-  // Add scroll event listener to check if sidebar is scrollable
+  // Add scroll event listener
   useEffect(() => {
     const sidebar = sidebarRef.current;
     if (sidebar) {
@@ -227,273 +164,130 @@ const Sidebar = ({ setActiveComponent }) => {
   }, []);
 
   return (
-    <div className="h-full w-64 flex flex-col bg-white overflow-hidden">
-      {/* Fixed Header - Will not scroll */}
-      <header className="flex-shrink-0 flex items-center gap-3 p-5 text-white font-bold text-xl bg-white border-b border-gray-200">
+    <div className="h-full w-64 flex flex-col bg-gradient-to-b from-gray-900 to-gray-800 text-white overflow-hidden shadow-2xl">
+      {/* Fixed Header */}
+      <header className="flex-shrink-0 flex items-center gap-3 p-5 border-b border-gray-700">
         <div className="flex items-center justify-center p-1 bg-white rounded-full">
-          <img src="logo.jpeg" alt="Logo" className="h-10 w-10 rounded-full" />
+          <img src="/logo.png" alt="Logo" className="h-10 w-10 rounded-full" />
         </div>
-        <span className="text-2xl font-bold text-cyan-700">مطبعه خوشه</span>
+        <div className="flex flex-col">
+          <span className="text-lg font-bold text-cyan-400">
+            سیستم مدیریت قرضه
+          </span>
+          <span className="text-xs text-gray-400">کارمندان</span>
+        </div>
       </header>
 
       {/* Scrollable Menu Area */}
       <div
         ref={sidebarRef}
-        className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar"
+        className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar"
       >
-        <ul className="space-y-[1px] pt-2">
-          {/* Page principale (Home) - Always first */}
-          {hasHomeAccess && (
-            <li className="relative group cursor-pointer mb-1">
-              <a
-                onClick={() => handleComponentSelect("home")}
-                className={`flex items-center w-full px-2 py-3 rounded-md transition-all duration-300 ${
-                  selectedC === "home"
-                    ? "bg-cyan-700 text-gray-100"
-                    : "hover:bg-cyan-700 text-gray-700 hover:text-white"
+        <ul className="space-y-1">
+          {/* Main Menu Items */}
+          {mainMenuItems.map((item, index) => (
+            <li key={index} className="relative group">
+              <button
+                onClick={() => handleComponentSelect(item.value)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                  selectedC === item.value
+                    ? "bg-cyan-600 text-white shadow-lg shadow-cyan-500/30"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
                 }`}
+                title={item.description}
               >
-                <span className="text-lg">
-                  <MdOutlineDashboardCustomize />
+                <span className="text-xl">{item.icon}</span>
+                <span className="flex-1 text-right text-sm font-medium">
+                  {item.name}
                 </span>
-                <span className="mr-4 text-base font-semibold">
-                  داشبورد اصلی
-                </span>
-              </a>
-            </li>
-          )}
-
-          {/* Orders Dropdown Menu */}
-          {accessibleOrders.length > 0 && (
-            <li className="relative group cursor-pointer mb-1">
-              <div>
-                {/* Main Orders button */}
-                <a
-                  onClick={() => handleDropdownToggle("orders")}
-                  className={`relative flex items-center justify-between w-full rounded-md px-2 py-3 transition-all duration-300 cursor-pointer ${
-                    openOrdersMenu
-                      ? "bg-cyan-700 text-white"
-                      : "hover:bg-cyan-700 text-gray-700 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-x-2">
-                    <span className="text-lg">
-                      <FaShoppingBag />
-                    </span>
-                    <span className="mr-4 text-base font-semibold">
-                      سفارشات
-                    </span>
-                  </div>
-                  <MdKeyboardArrowDown
-                    size={20}
-                    className={`transition-transform duration-300 ${
-                      openOrdersMenu ? "rotate-180" : ""
-                    }`}
-                  />
-                </a>
-
-                {/* Orders Sub Menu */}
-                {openOrdersMenu && (
-                  <ul className="mt-1 space-y-1">
-                    {accessibleOrders.map((orderItem, index) => (
-                      <li key={index}>
-                        <a
-                          onClick={() =>
-                            handleSubItemClick(orderItem.value, "orders")
-                          }
-                          className={`flex items-center gap-x-2 px-3 py-3 text-sm rounded-md cursor-pointer transition ${
-                            selectedC === orderItem.value
-                              ? "bg-cyan-600 text-white"
-                              : "text-gray-700 hover:bg-cyan-600 hover:text-white"
-                          }`}
-                          title={orderItem.description}
-                        >
-                          <span className="text-sm">{orderItem.icon}</span>
-                          {orderItem.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </li>
-          )}
-
-          {/* Staff Management Dropdown */}
-          {accessibleStaff.length > 0 && (
-            <li className="relative group cursor-pointer mb-1">
-              <div>
-                {/* Main Staff button */}
-                <a
-                  onClick={() => handleDropdownToggle("staff")}
-                  className={`relative flex items-center justify-between w-full rounded-md px-2 py-3 transition-all duration-300 cursor-pointer ${
-                    openStaffMenu
-                      ? "bg-cyan-700 text-white"
-                      : "hover:bg-cyan-700 text-gray-700 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-x-2">
-                    <span className="text-lg">
-                      <FaUsers />
-                    </span>
-                    <span className="mr-4 text-base font-semibold">
-                      مدیریت کارمندان
-                    </span>
-                  </div>
-                  <MdKeyboardArrowDown
-                    size={20}
-                    className={`transition-transform duration-300 ${
-                      openStaffMenu ? "rotate-180" : ""
-                    }`}
-                  />
-                </a>
-
-                {/* Staff Sub Menu */}
-                {openStaffMenu && (
-                  <ul className="mt-1 space-y-1">
-                    {accessibleStaff.map((staffItem, index) => (
-                      <li key={index}>
-                        <a
-                          onClick={() =>
-                            handleSubItemClick(staffItem.value, "staff")
-                          }
-                          className={`flex items-center gap-x-2 px-3 py-3 text-sm rounded-md cursor-pointer transition group ${
-                            selectedC === staffItem.value
-                              ? "bg-cyan-600 text-white"
-                              : "text-gray-700 hover:bg-cyan-600 hover:text-white"
-                          }`}
-                          title={staffItem.description}
-                        >
-                          <span className="text-sm">{staffItem.icon}</span>
-                          <span className="flex-1">{staffItem.name}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </li>
-          )}
-
-          {/* Other Menu Items */}
-          {accessibleOthers.map((component, index) => (
-            <li key={index} className="relative group cursor-pointer">
-              <a
-                onClick={() => handleComponentSelect(component.value)}
-                className={`flex items-center w-full px-2 py-3 rounded-md transition-all duration-300 ${
-                  selectedC === component.value
-                    ? "bg-cyan-700 text-gray-100"
-                    : "hover:bg-cyan-700 text-gray-700 hover:text-white"
-                }`}
-              >
-                <span className="text-lg">{component.icon}</span>
-                <span className="mr-4 text-base font-semibold">
-                  {component.name}
-                </span>
-              </a>
+              </button>
             </li>
           ))}
 
-          {/* Stock Manager Dropdown (فقط برای ادمین) */}
-          {currentUser?.role === "admin" && (
-            <li className="relative group cursor-pointer mb-1">
-              <div>
-                {/* Main Stock button */}
-                <a
-                  onClick={() => handleDropdownToggle("stock")}
-                  className={`relative flex items-center justify-between w-full rounded-md px-2 py-3 transition-all duration-300 cursor-pointer ${
-                    openStockMenu
-                      ? "bg-cyan-700 text-white"
-                      : "hover:bg-cyan-700 text-gray-700 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center gap-x-2">
-                    <span className="text-lg">
-                      <MdOutlineStore />
-                    </span>
-                    <span className="mr-4 text-base font-semibold">
-                      مدیریت گدام
-                    </span>
-                  </div>
-                  <MdKeyboardArrowDown
-                    size={20}
-                    className={`transition-transform duration-300 ${
-                      openStockMenu ? "rotate-180" : ""
-                    }`}
-                  />
-                </a>
-
-                {/* Stock Sub Menu */}
-                {openStockMenu && (
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <a
-                        onClick={() =>
-                          handleSubItemClick("StockManager", "stock")
-                        }
-                        className={`flex items-center gap-x-2 px-3 py-3 text-sm rounded-md cursor-pointer transition ${
-                          selectedC === "StockManager"
-                            ? "bg-cyan-600 text-white"
-                            : "text-gray-700 hover:bg-cyan-600 hover:text-white"
-                        }`}
-                      >
-                        <MdOutlineStore size={20} />
-                        مدیریت گدام مرکزی
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        onClick={() =>
-                          handleSubItemClick("CustomerStock", "stock")
-                        }
-                        className={`flex items-center gap-x-2 px-3 py-3 text-sm rounded-md cursor-pointer transition ${
-                          selectedC === "CustomerStock"
-                            ? "bg-cyan-600 text-white"
-                            : "text-gray-700 hover:bg-cyan-600 hover:text-white"
-                        }`}
-                      >
-                        <MdOutlineStore size={20} />
-                        مدیریت گدام مشتری‌ها
-                      </a>
-                    </li>
-                  </ul>
-                )}
-              </div>
-            </li>
-          )}
-
-          {/* Sign Out - Always at bottom */}
-          {currentUser && (
-            <li className="relative group cursor-pointer mt-2 pt-2 border-t border-gray-200">
-              <a
-                onClick={handleSignOut}
-                className="flex items-center w-full px-2 py-3 rounded-md transition-all duration-300 hover:bg-red-600 text-gray-700 hover:text-white"
+          {/* Reports Dropdown Menu */}
+          <li className="relative group mt-2">
+            <div>
+              {/* Main Reports button */}
+              <button
+                onClick={() => handleDropdownToggle("reports")}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all duration-300 ${
+                  openReportsMenu
+                    ? "bg-cyan-600 text-white shadow-lg shadow-cyan-500/30"
+                    : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                }`}
               >
-                <span className="text-lg">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">
+                    <BiSolidReport />
+                  </span>
+                  <span className="text-sm font-medium">گزارش‌ها</span>
+                </div>
+                <MdKeyboardArrowDown
+                  size={20}
+                  className={`transition-transform duration-300 ${
+                    openReportsMenu ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Reports Sub Menu */}
+              {openReportsMenu && (
+                <ul className="mt-1 mr-6 space-y-1 border-r-2 border-cyan-600 pr-2">
+                  {reportItems.map((report, index) => (
+                    <li key={index}>
+                      <button
+                        onClick={() =>
+                          handleSubItemClick(report.value, "reports")
+                        }
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-all duration-300 ${
+                          selectedC === report.value
+                            ? "bg-cyan-600 text-white"
+                            : "text-gray-400 hover:bg-gray-700 hover:text-white"
+                        }`}
+                        title={report.description}
+                      >
+                        <span className="text-base">{report.icon}</span>
+                        <span className="text-right">{report.name}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </li>
+
+          {/* Sign Out Button */}
+          {currentUser && (
+            <li className="absolute bottom-4 left-3 right-3">
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 text-gray-300 hover:bg-red-600 hover:text-white"
+              >
+                <span className="text-xl">
                   <FaSignOutAlt />
                 </span>
-                <span className="mr-4 text-base font-semibold">خروج</span>
-              </a>
+                <span className="text-sm font-medium">خروج از سیستم</span>
+              </button>
             </li>
           )}
         </ul>
       </div>
 
-      {/* Optional: Add CSS for custom scrollbar */}
+      {/* Custom Scrollbar Styles */}
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
+          width: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #f1f1f1;
+          background: #374151;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #c1c1c1;
+          background: #06b6d4;
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #a8a8a8;
+          background: #0891b2;
         }
       `}</style>
     </div>

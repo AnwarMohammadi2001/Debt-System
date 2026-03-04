@@ -1,6 +1,6 @@
 import readline from "readline";
 import bcrypt from "bcryptjs";
-import sequelize from "./dbconnection.js";
+import sequelize from "./config/database.js";
 import User from "./Models/user.js";
 
 const rl = readline.createInterface({

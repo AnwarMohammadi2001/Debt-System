@@ -5,11 +5,16 @@ import multer from "multer";
 import path, { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-// import { setupAssociations } from "./Models/associations.js";
-// setupAssociations();
-import sequelize from "./dbconnection.js";
+import { setupAssociations } from "./Models/associations.js";
+setupAssociations();
+import sequelize from "./config/database.js";
 // روت‌ها
 import userRout from "./routes/userRout.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
+import loanRoutes from "./routes/loanRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
+import walletRoutes from "./routes/walletRoutes.js";
 
 // تنظیمات محیطی
 import dotenv from "dotenv";
@@ -64,6 +69,11 @@ app.use("/uploads", express.static(uploadsDirectory));
 
 // --- تعریف مسیرها (Routes) ---
 app.use("/users", userRout);
+app.use("/api/employees", employeeRoutes);
+app.use("/api/loans", loanRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/wallets", walletRoutes);
 
 sequelize
   // گزینه alter: true جدول‌ها را بر اساس مدل‌های جدید آپدیت می‌کند

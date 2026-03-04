@@ -7,11 +7,34 @@ import Signin from "./features/authentication/components/Signin";
 import PrivateRoute from "./components/common/PrivateRoute";
 import EmailEntry from "./pages/dashboard/reset_password/EmailEntery";
 import ResetPassword from "./pages/dashboard/reset_password/ResetPassword";
-import CustomerWallet from "./pages/CustomerWallet";
+import { Toaster } from "react-hot-toast";
 // import HomePage from "./pages/home/HomePage";
 export default function App() {
   return (
     <div>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+          style: {
+            fontFamily: "Vazirmatn, sans-serif",
+            fontSize: "14px",
+          },
+          success: {
+            style: {
+              background: "#10b981",
+              color: "white",
+            },
+          },
+          error: {
+            style: {
+              background: "#ef4444",
+              color: "white",
+            },
+          },
+        }}
+      />
       <BrowserRouter>
         <ScrollTop />
         <Routes>
@@ -24,7 +47,6 @@ export default function App() {
           <Route element={<PrivateRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
           </Route>
-          <Route path="/customer-wallet/:id" element={<CustomerWallet />} /> 
           <Route element={<OnlyAdminPrivateRoute />}></Route>
         </Routes>
       </BrowserRouter>
