@@ -34,7 +34,7 @@ const CompanyReport = () => {
 
   return (
     <div className="p-5">
-      <h1 className="text-2xl font-bold text-gray-800">گزارش کلی شرکت</h1>
+      <h1 className="text-2xl font-bold text-gray-800">گزارش کلی سیستم</h1>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mt-5 gap-4">

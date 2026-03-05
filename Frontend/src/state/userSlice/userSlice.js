@@ -20,16 +20,21 @@ export const signIn = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `${BASE_URL}/users/login/`,
-        credentials
+        `${BASE_URL}/users/login`,
+        credentials,
+        {
+          withCredentials: true, // ⭐ خیلی مهم
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
       );
 
       const { token, user } = response.data;
 
-      // Encrypt token before saving in Redux
       const encryptedToken = CryptoJS.AES.encrypt(
         token,
-        ENCRYPT_SECRET
+        ENCRYPT_SECRET,
       ).toString();
 
       return {
@@ -37,14 +42,9 @@ export const signIn = createAsyncThunk(
         userData: user,
       };
     } catch (error) {
-      const message =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        "Login failed. Please try again.";
-
-      return rejectWithValue(message);
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
-  }
+  },
 );
 
 // ✅ CREATE USER (e.g., registration)

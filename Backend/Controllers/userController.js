@@ -46,6 +46,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ where: { email } });
 
     if (!user) return res.status(404).json({ message: "User not found." });
@@ -58,9 +59,16 @@ export const loginUser = async (req, res) => {
       expiresIn: "1d",
     });
 
+    // ⭐ IMPORTANT — Send cookie
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none", // ⭐ VERY IMPORTANT for cross domain
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       message: "Login successful",
-      token,
       user: {
         id: user.id,
         fullname: user.fullname,

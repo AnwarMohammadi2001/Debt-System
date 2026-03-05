@@ -40,18 +40,18 @@ const Signin = () => {
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-x-3">
               <div className="relative">
-                {/* <img
-                  src="logo.png"
+                <img
+                  src="Tamadon.png"
                   alt="logo"
                   className="h-14 w-14 rounded-full border-2 border-cyan-800 shadow-lg"
-                /> */}
+                />
 
-                <FcPrint size={30} />
+              
 
                 <div className="absolute -inset-1 bg-cyan-400 rounded-full blur opacity-30 animate-ping"></div>
               </div>
               <h1 className="text-3xl font-bold text-cyan-800 drop-shadow-sm">
-                مطبعه خوشه
+                 چاپخانه تمدن
               </h1>
             </div>
             <p className="text-gray-600 mt-2">لطفاً اطلاعات خود را وارد کنید</p>
@@ -125,7 +125,7 @@ const Signin = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-cyan-600 text-white py-4 rounded-md font-semibold text-lg transform hover:scale-102 hover:from-cyan-700 hover:to-cyan-600 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer relative overflow-hidden group"
+            className="w-full bg-teal-700 text-white py-4 rounded-md font-semibold text-lg transform hover:scale-102 hover:from-cyan-700 hover:to-cyan-600 transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer relative overflow-hidden group"
           >
             {/* Button shine effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
@@ -186,14 +186,7 @@ const Signin = () => {
           )}
           <a href="/forgot_password"> رمز عبور خود را فراموش کرده اید؟</a>
           {/* Footer */}
-          <div className="text-center pt-4 border-t border-gray-100">
-            <p className="text-gray-600 text-sm">
-              مطبعه خوشه - خدمات چاپ با کیفیت
-            </p>
-            <p className="text-gray-500 text-xs mt-1">
-              khosha Printing House - Quality Printing Services
-            </p>
-          </div>
+         
         </form>
       </div>
     </div>

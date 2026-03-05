@@ -98,7 +98,7 @@ export const getEmployees = async (req, res) => {
       ],
       limit: parseInt(limit),
       offset: parseInt(offset),
-      order: [["createdAt", "DESC"]],
+      order: [["createdAt", "ASC"]],
       distinct: true,
     });
 
@@ -173,7 +173,7 @@ export const getEmployeeById = async (req, res) => {
               attributes: ["id", "amount", "paymentDate", "createdAt"],
             },
           ],
-          order: [["createdAt", "DESC"]],
+          order: [["createdAt", "ASC"]],
         },
       ],
     });
