@@ -1,4 +1,7 @@
 import { Wallet, Employee } from "../Models/index.js";
+// In walletController.js - Add missing import at the top
+import sequelize from "../config/database.js"; // 👈 Add this
+import { Op } from "sequelize"; // Add this too if using Op
 
 // @desc    Get wallet by employee ID
 // @route   GET /api/wallets/employee/:employeeId

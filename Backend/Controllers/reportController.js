@@ -1,15 +1,13 @@
 import { Employee, Loan, LoanPayment, Wallet } from "../Models/index.js";
-import  sequelize from "../config/database.js";
+import sequelize from "../config/database.js";
+import { Op } from "sequelize";
 
 // @desc    Get company summary report
 // @route   GET /api/reports/summary
-// @access  Public
 export const getCompanySummary = async (req, res) => {
   try {
-    // Get total employees
     const totalEmployees = await Employee.count();
 
-    // Get wallet statistics
     const walletStats = await Wallet.findAll({
       attributes: [
         [sequelize.fn("SUM", sequelize.col("totalLoans")), "totalLoans"],
@@ -21,21 +19,12 @@ export const getCompanySummary = async (req, res) => {
       ],
     });
 
-    // Get active loans count
-    const activeLoansCount = await Loan.count({
-      where: { status: "Active" },
-    });
+    const activeLoansCount = await Loan.count({ where: { status: "Active" } });
 
-    // Get recent activities
     const recentLoans = await Loan.findAll({
       limit: 5,
       order: [["createdAt", "DESC"]],
-      include: [
-        {
-          model: Employee,
-          attributes: ["fullName"],
-        },
-      ],
+      include: [{ model: Employee, as: "Employee", attributes: ["fullName"] }],
     });
 
     const recentPayments = await LoanPayment.findAll({
@@ -44,24 +33,15 @@ export const getCompanySummary = async (req, res) => {
       include: [
         {
           model: Loan,
+          as: "Loan",
           include: [
-            {
-              model: Employee,
-              attributes: ["fullName"],
-            },
+            { model: Employee, as: "Employee", attributes: ["fullName"] },
           ],
         },
       ],
     });
 
-    // Calculate averages
-    const avgLoanPerEmployee =
-      totalEmployees > 0
-        ? (
-            parseFloat(walletStats[0]?.dataValues.totalLoans || 0) /
-            totalEmployees
-          ).toFixed(2)
-        : 0;
+    const stats = walletStats[0]?.dataValues || {};
 
     res.status(200).json({
       success: true,
@@ -69,16 +49,9 @@ export const getCompanySummary = async (req, res) => {
         summary: {
           totalEmployees,
           totalActiveLoans: activeLoansCount,
-          totalLoanAmount: parseFloat(
-            walletStats[0]?.dataValues.totalLoans || 0,
-          ),
-          totalPaidAmount: parseFloat(
-            walletStats[0]?.dataValues.totalPaid || 0,
-          ),
-          totalRemainingBalance: parseFloat(
-            walletStats[0]?.dataValues.totalRemaining || 0,
-          ),
-          averageLoanPerEmployee: parseFloat(avgLoanPerEmployee),
+          totalLoanAmount: parseFloat(stats.totalLoans || 0),
+          totalPaidAmount: parseFloat(stats.totalPaid || 0),
+          totalRemainingBalance: parseFloat(stats.totalRemaining || 0),
         },
         recentActivities: {
           loans: recentLoans,
@@ -87,16 +60,12 @@ export const getCompanySummary = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
 // @desc    Get employee loan history
 // @route   GET /api/reports/employee/:employeeId/loans
-// @access  Public
 export const getEmployeeLoanHistory = async (req, res) => {
   try {
     const { employeeId } = req.params;
@@ -106,13 +75,16 @@ export const getEmployeeLoanHistory = async (req, res) => {
       include: [
         {
           model: Wallet,
+          as: "Wallet",
           attributes: ["totalLoans", "totalPaid", "remainingBalance"],
         },
         {
           model: Loan,
+          as: "Loans",
           include: [
             {
               model: LoanPayment,
+              as: "LoanPayments",
               attributes: ["id", "amount", "paymentDate", "createdAt"],
             },
           ],
@@ -121,29 +93,20 @@ export const getEmployeeLoanHistory = async (req, res) => {
       ],
     });
 
-    if (!employee) {
-      return res.status(404).json({
-        success: false,
-        error: "کارمند یافت نشد",
-      });
-    }
+    if (!employee)
+      return res.status(404).json({ success: false, error: "کارمند یافت نشد" });
 
-    // Calculate additional statistics
-    const loanStats = employee.Loans.reduce(
+    const loans = employee.Loans || [];
+    const loanStats = loans.reduce(
       (stats, loan) => {
         stats.totalLoans++;
-        stats.totalAmount += parseFloat(loan.amount);
-        stats.totalPaid += loan.LoanPayments.reduce(
-          (sum, p) => sum + parseFloat(p.amount),
+        stats.totalAmount += parseFloat(loan.amount || 0);
+        stats.totalPaid += (loan.LoanPayments || []).reduce(
+          (sum, p) => sum + parseFloat(p.amount || 0),
           0,
         );
-
-        if (loan.status === "Active") {
-          stats.activeLoans++;
-        } else {
-          stats.closedLoans++;
-        }
-
+        if (loan.status === "Active") stats.activeLoans++;
+        else stats.closedLoans++;
         return stats;
       },
       {
@@ -155,52 +118,37 @@ export const getEmployeeLoanHistory = async (req, res) => {
       },
     );
 
-    res.status(200).json({
-      success: true,
-      data: {
-        employee,
-        statistics: loanStats,
-        loans: employee.Loans,
-      },
-    });
+    res
+      .status(200)
+      .json({
+        success: true,
+        data: { employee, statistics: loanStats, loans },
+      });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
 // @desc    Get payments report by date range
 // @route   GET /api/reports/payments
-// @access  Public
 export const getPaymentsReport = async (req, res) => {
   try {
     const { startDate, endDate, employeeId } = req.query;
-
     const whereCondition = {};
-
-    if (startDate && endDate) {
-      whereCondition.paymentDate = {
-        [Op.between]: [startDate, endDate],
-      };
-    }
+    if (startDate && endDate)
+      whereCondition.paymentDate = { [Op.between]: [startDate, endDate] };
 
     const includeCondition = [
       {
         model: Loan,
+        as: "Loan",
         include: [
-          {
-            model: Employee,
-            attributes: ["id", "fullName"],
-          },
+          { model: Employee, as: "Employee", attributes: ["id", "fullName"] },
         ],
       },
     ];
 
-    if (employeeId) {
-      includeCondition[0].where = { employeeId };
-    }
+    if (employeeId) includeCondition[0].where = { employeeId };
 
     const payments = await LoanPayment.findAll({
       where: whereCondition,
@@ -208,112 +156,52 @@ export const getPaymentsReport = async (req, res) => {
       order: [["paymentDate", "DESC"]],
     });
 
-    // Group payments by date
-    const groupedByDate = payments.reduce((groups, payment) => {
-      const date = payment.paymentDate;
-      if (!groups[date]) {
-        groups[date] = {
-          date,
-          count: 0,
-          total: 0,
-          payments: [],
-        };
-      }
-      groups[date].count++;
-      groups[date].total += parseFloat(payment.amount);
-      groups[date].payments.push(payment);
-      return groups;
-    }, {});
-
-    // Calculate totals
-    const totalPayments = payments.length;
-    const totalAmount = payments.reduce(
-      (sum, p) => sum + parseFloat(p.amount),
-      0,
-    );
-
-    res.status(200).json({
-      success: true,
-      data: {
-        summary: {
-          period: {
-            start: startDate || "All",
-            end: endDate || "All",
-          },
-          totalPayments,
-          totalAmount,
-          averagePayment:
-            totalPayments > 0 ? (totalAmount / totalPayments).toFixed(2) : 0,
-        },
-        groupedByDate: Object.values(groupedByDate),
-        payments,
-      },
-    });
+    res.status(200).json({ success: true, data: { payments } });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
 // @desc    Get loans report with filters
 // @route   GET /api/reports/loans
-// @access  Public
 export const getLoansReport = async (req, res) => {
   try {
     const { status, startDate, endDate, employeeId } = req.query;
-
     const whereCondition = {};
 
-    if (status) {
-      whereCondition.status = status;
-    }
-
-    if (startDate && endDate) {
-      whereCondition.loanDate = {
-        [Op.between]: [startDate, endDate],
-      };
-    }
-
-    if (employeeId) {
-      whereCondition.employeeId = employeeId;
-    }
+    if (status) whereCondition.status = status;
+    if (startDate && endDate)
+      whereCondition.loanDate = { [Op.between]: [startDate, endDate] };
+    if (employeeId) whereCondition.employeeId = employeeId;
 
     const loans = await Loan.findAll({
       where: whereCondition,
       include: [
         {
           model: Employee,
+          as: "Employee",
           attributes: ["id", "fullName", "position"],
         },
         {
           model: LoanPayment,
+          as: "LoanPayments",
           attributes: ["id", "amount"],
         },
       ],
       order: [["loanDate", "DESC"]],
     });
 
-    // Calculate statistics
     const stats = loans.reduce(
       (acc, loan) => {
         acc.totalLoans++;
-        acc.totalAmount += parseFloat(loan.amount);
-        acc.totalRemaining += parseFloat(loan.remainingAmount);
-
-        const paidAmount = loan.LoanPayments.reduce(
-          (sum, p) => sum + parseFloat(p.amount),
+        acc.totalAmount += parseFloat(loan.amount || 0);
+        acc.totalRemaining += parseFloat(loan.remainingAmount || 0);
+        acc.totalPaid += (loan.LoanPayments || []).reduce(
+          (sum, p) => sum + parseFloat(p.amount || 0),
           0,
         );
-        acc.totalPaid += paidAmount;
-
-        if (loan.status === "Active") {
-          acc.activeLoans++;
-        } else {
-          acc.closedLoans++;
-        }
-
+        if (loan.status === "Active") acc.activeLoans++;
+        else acc.closedLoans++;
         return acc;
       },
       {
@@ -326,35 +214,20 @@ export const getLoansReport = async (req, res) => {
       },
     );
 
-    res.status(200).json({
-      success: true,
-      data: {
-        statistics: stats,
-        loans,
-      },
-    });
+    res.status(200).json({ success: true, data: { statistics: stats, loans } });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// @desc    Get dashboard statistics
+// @desc    Get dashboard stats
 // @route   GET /api/reports/dashboard
-// @access  Public
 export const getDashboardStats = async (req, res) => {
   try {
-    // Get current month's data
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
 
-    // Total employees
     const totalEmployees = await Employee.count();
-
-    // Active loans count and amount
     const activeLoans = await Loan.findAll({
       where: { status: "Active" },
       attributes: [
@@ -366,30 +239,20 @@ export const getDashboardStats = async (req, res) => {
       ],
     });
 
-    // Monthly payments
     const monthlyPayments = await LoanPayment.sum("amount", {
-      where: {
-        paymentDate: {
-          [Op.gte]: startOfMonth,
-        },
-      },
+      where: { paymentDate: { [Op.gte]: startOfMonth } },
     });
 
-    // Monthly loans
     const monthlyLoans = await Loan.count({
-      where: {
-        loanDate: {
-          [Op.gte]: startOfMonth,
-        },
-      },
+      where: { loanDate: { [Op.gte]: startOfMonth } },
     });
 
-    // Top 5 employees with highest remaining balance
     const topEmployees = await Wallet.findAll({
       attributes: ["employeeId", "remainingBalance"],
       include: [
         {
           model: Employee,
+          as: "Employee",
           attributes: ["fullName", "position"],
         },
       ],
@@ -415,9 +278,6 @@ export const getDashboardStats = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message,
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };

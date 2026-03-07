@@ -4,12 +4,15 @@ import Loan from "./Loan.js";
 import LoanPayment from "./LoanPayment.js";
 
 export const setupAssociations = () => {
-  Employee.hasOne(Wallet, { foreignKey: "employeeId" });
-  Wallet.belongsTo(Employee, { foreignKey: "employeeId" });
+  // Employee → Wallet
+  Employee.hasOne(Wallet, { foreignKey: "employeeId", as: "wallet" });
+  Wallet.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
-  Employee.hasMany(Loan, { foreignKey: "employeeId" });
-  Loan.belongsTo(Employee, { foreignKey: "employeeId" });
+  // Employee → Loan
+  Employee.hasMany(Loan, { foreignKey: "employeeId", as: "loans" });
+  Loan.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
-  Loan.hasMany(LoanPayment, { foreignKey: "loanId" });
-  LoanPayment.belongsTo(Loan, { foreignKey: "loanId" });
+  // Loan → LoanPayments
+  Loan.hasMany(LoanPayment, { foreignKey: "loanId", as: "payments" });
+  LoanPayment.belongsTo(Loan, { foreignKey: "loanId", as: "loan" });
 };

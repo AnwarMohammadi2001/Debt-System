@@ -1,112 +1,118 @@
-import express from "express";
-import bodyParser from "body-parser";
+import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
+import express from "express";
+import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import sequelize from "./config/database.js";
+import cors from "cors";
 
-import { setupAssociations } from "./Models/associations.js";
-
-import userRout from "./routes/userRout.js";
-import employeeRoutes from "./routes/employeeRoutes.js";
-import loanRoutes from "./routes/loanRoutes.js";
-import paymentRoutes from "./routes/paymentRoutes.js";
-import reportRoutes from "./routes/reportRoutes.js";
-import walletRoutes from "./routes/walletRoutes.js";
-
-dotenv.config();
-setupAssociations();
-
-const app = express();
-
+// ---------------------------------------------------------
+// 1. تنظیمات سیستم لاگ‌گیری خطاهای بحرانی
+// ---------------------------------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const logFilePath = path.join(__dirname, "server_error.txt");
 
-/*
-==================================================
-✅ PRODUCTION CORS (BEST FOR SUBDOMAINS)
-==================================================
-*/
+// تابع برای نوشتن وضعیت و خطاها در یک فایل متنی
+function logMessage(msg) {
+  const time = new Date().toLocaleString("fa-IR");
+  fs.appendFileSync(logFilePath, `[${time}] ${msg}\n`, "utf8");
+}
 
-const allowedOrigins = [
-  "https://tamadon.tet-soft.com",
-  "https://tamadonback.tet-soft.com",
-  "http://localhost:3000",
-  "http://localhost:5173",
-];
+// برای اینکه لاگ‌های قدیمی پاک شوند، در شروع برنامه فایل قبلی را حذف می‌کنیم
+if (fs.existsSync(logFilePath)) {
+  fs.unlinkSync(logFilePath);
+}
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+logMessage("🚀 شروع اجرای سرور (حالت عیب‌یابی)...");
 
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", allowedOrigins[0]);
-  }
+// ---------------------------------------------------------
+// 2. تنظیمات اولیه Express و CORS
+// ---------------------------------------------------------
+dotenv.config();
+const app = express();
 
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+const corsOptions = {
+  origin: "https://tamadon.tet-soft.com",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Authorization",
+    "Accept",
+  ],
+  optionsSuccessStatus: 200,
+};
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-/*
-==================================================
-✅ MIDDLEWARES
-==================================================
-*/
-
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-/*
-==================================================
-✅ STATIC FILES
-==================================================
-*/
-
 const uploadsDirectory = path.join(__dirname, "uploads");
 app.use("/uploads", express.static(uploadsDirectory));
 
-/*
-==================================================
-✅ ROUTES
-==================================================
-*/
+// ---------------------------------------------------------
+// 3. بارگذاری هوشمند فایل‌ها برای پیدا کردن منبع خطای 503
+// ---------------------------------------------------------
+async function startServer() {
+  try {
+    logMessage("⏳ در حال خواندن فایل database.js ...");
+    const dbModule = await import("./config/database.js");
+    const sequelize = dbModule.default;
+    logMessage("✅ فایل دیتابیس با موفقیت خوانده شد.");
 
-app.use("/users", userRout);
-app.use("/api/employees", employeeRoutes);
-app.use("/api/loans", loanRoutes);
-app.use("/api/payments", paymentRoutes);
-app.use("/api/reports", reportRoutes);
-app.use("/api/wallets", walletRoutes);
+    logMessage("⏳ در حال بارگذاری فایل‌های روت (Routes) ...");
+    const userRout = (await import("./routes/userRout.js")).default;
+    const employeeRoutes = (await import("./routes/employeeRoutes.js")).default;
+    const loanRoutes = (await import("./routes/loanRoutes.js")).default;
+    const paymentRoutes = (await import("./routes/paymentRoutes.js")).default;
+    const reportRoutes = (await import("./routes/reportRoutes.js")).default;
+    const walletRoutes = (await import("./routes/walletRoutes.js")).default;
+    logMessage("✅ تمام فایل‌های روت با موفقیت پیدا و خوانده شدند.");
 
-/*
-==================================================
-✅ DATABASE + SERVER START
-==================================================
-*/
+    // اعمال روت‌ها به سرور
+    app.use("/users", userRout);
+    app.use("/api/employees", employeeRoutes);
+    app.use("/api/loans", loanRoutes);
+    app.use("/api/payments", paymentRoutes);
+    app.use("/api/reports", reportRoutes);
+    app.use("/api/wallets", walletRoutes);
 
-const port = process.env.PORT || 8038;
+    logMessage("⏳ در حال اتصال به دیتابیس MySQL ...");
+    await sequelize.authenticate();
+    logMessage("✅ اتصال به دیتابیس MySQL با موفقیت انجام شد.");
 
-sequelize
-  .sync({ alter: true })
-  .then(() => {
-    app.listen(port, () => {
-      console.log("✅ Server running on port:", port);
-      console.log("✅ Production CORS Enabled");
+    await sequelize.sync();
+    logMessage("✅ دیتابیس سینک شد.");
+
+    app.get("/", (req, res) => {
+      res.send("API is Running Perfectly!");
     });
-  })
-  .catch((err) => {
-    console.error("❌ Database connection failed:", err);
-  });
+  } catch (error) {
+    // اگر سرور کرش کند، خطای دقیق در فایل ثبت می‌شود
+    logMessage(
+      `❌ خطای بحرانی (دلیل کرش کردن سرور):\n${error.stack || error.message}`,
+    );
+
+    // اگر کسی سایت را باز کند، به جای خطای 503، می‌گوییم فایل لاگ را بخواند
+    app.use((req, res) => {
+      res
+        .status(500)
+        .send(
+          "Server Crashed! Please check the server_error.txt file in cPanel File Manager.",
+        );
+    });
+  } finally {
+    // در هر حالتی سرور را روشن می‌کنیم تا Passenger خطای 503 ندهد
+    const port = process.env.PORT || 8038;
+    app.listen(port, () => {
+      logMessage(`🌐 سرور با موفقیت روی پورت ${port} روشن شد.`);
+    });
+  }
+}
+
+startServer();

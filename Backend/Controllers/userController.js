@@ -6,6 +6,7 @@ import nodemailer from "nodemailer";
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 const frontUrl = process.env.FRONT_URL;
 import dotenv from "dotenv";
+
 dotenv.config();
 // ✅ Register new user
 export const registerUser = async (req, res) => {
@@ -43,27 +44,38 @@ export const registerUser = async (req, res) => {
 };
 
 // ✅ Login
+
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email, isActive: true },
+    });
 
-    if (!user) return res.status(404).json({ message: "User not found." });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found or inactive",
+      });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(401).json({ message: "Invalid credentials." });
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid credentials",
+      });
+    }
 
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: "1d",
     });
 
-    // ⭐ IMPORTANT — Send cookie
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "none", // ⭐ VERY IMPORTANT for cross domain
+      sameSite: "none",
+      domain: ".tet-soft.com", // ⭐ critical for cross-subdomain cookie
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -74,12 +86,13 @@ export const loginUser = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         role: user.role,
-        isActive: user.isActive,
       },
     });
   } catch (err) {
-    console.error("Error logging in:", err);
-    res.status(500).json({ message: "Server error" });
+    console.error(err);
+    res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 
@@ -111,7 +124,6 @@ export const getUserById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const updateUser = async (req, res) => {
   try {
