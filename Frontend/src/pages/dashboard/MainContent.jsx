@@ -2,7 +2,6 @@ import { useSelector } from "react-redux";
 import Dashboard from "./pages/dashboard";
 
 import EmployeesPage from "../EmployeesPage";
-import WalletPage from "../WalletPage";
 import {
   CompanyReport,
   EmployeeReport,
@@ -39,10 +38,6 @@ const MainContent = ({ activeComponent }) => {
 
       case "employees":
         return <EmployeesPage />;
-
-      case "wallet":
-        return <WalletPage />;
-
       case "loans":
         return <LoansPage />;
 

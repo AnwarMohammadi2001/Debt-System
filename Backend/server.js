@@ -34,7 +34,7 @@ dotenv.config();
 const app = express();
 
 const corsOptions = {
-  origin: "https://tamadon.tet-soft.com",
+  origin: ["http://localhost:5173", "https://tamadon.tet-soft.com"],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   credentials: true,
   allowedHeaders: [

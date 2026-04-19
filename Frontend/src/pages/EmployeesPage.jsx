@@ -1,5 +1,6 @@
 // src/pages/EmployeesPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+
 import {
   useEmployees,
   useCreateEmployee,
@@ -39,7 +40,6 @@ const EmployeesPage = () => {
     loanStatus: "all", // 'all', 'hasLoan', 'noLoan'
     position: "all",
   });
-  const [availablePositions, setAvailablePositions] = useState([]);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -56,21 +56,24 @@ const EmployeesPage = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading, error, refetch } = useEmployees({
-    page,
-    search: debouncedSearch,
-  });
+  const params = useMemo(
+    () => ({
+      page,
+      search: debouncedSearch,
+    }),
+    [page, debouncedSearch],
+  );
+
+  const { data, isLoading, error } = useEmployees(params);
 
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee();
   const deleteEmployee = useDeleteEmployee();
 
   // Extract unique positions from employees data
-  useEffect(() => {
-    if (data?.data) {
-      const positions = [...new Set(data.data.map((emp) => emp.position))];
-      setAvailablePositions(positions);
-    }
+  const availablePositions = useMemo(() => {
+    if (!data?.data) return [];
+    return [...new Set(data.data.map((emp) => emp.position))];
   }, [data]);
 
   const handleInputChange = (e) => {
@@ -106,7 +109,6 @@ const EmployeesPage = () => {
 
       setIsModalOpen(false);
       resetForm();
-      refetch();
     } catch (error) {
       toast.error(error.response?.data?.error || "خطا در عملیات");
     }
@@ -138,7 +140,6 @@ const EmployeesPage = () => {
       toast.success("کارمند با موفقیت حذف شد");
       setShowDeleteConfirm(false);
       setEmployeeToDelete(null);
-      refetch();
     } catch (error) {
       toast.error(error.response?.data?.error || "خطا در حذف کارمند");
     }
@@ -362,7 +363,9 @@ const EmployeesPage = () => {
                     key={employee.id}
                     className="hover:bg-gray-50 odd:bg-gray-100 transition"
                   >
-                    <td className="px-6 py-3 whitespace-nowrap">{index + 1}</td>
+                    <td className="px-6 py-3 whitespace-nowrap">
+                      {(page - 1) * 10 + index + 1}
+                    </td>
                     <td className="px-6 py-3 whitespace-nowrap font-medium text-gray-900">
                       {employee.fullName}
                     </td>

@@ -60,27 +60,23 @@ export const getEmployees = async (req, res) => {
           model: Wallet,
           as: "Wallet",
           attributes: ["totalLoans", "totalPaid", "remainingBalance"],
-          required: false,
         },
       ],
-      limit: limit,
-      offset: offset,
+      limit,
+      offset,
       order: [["createdAt", "DESC"]],
-      distinct: true,
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: employees,
-        pagination: {
-          total: count,
-          page,
-          limit,
-          pages: Math.ceil(count / limit),
-        },
-      });
+    res.status(200).json({
+      success: true,
+      data: employees,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        pages: Math.ceil(count / limit),
+      },
+    });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -113,22 +109,17 @@ export const getEmployeeById = async (req, res) => {
         {
           model: Wallet,
           as: "Wallet",
-          attributes: ["totalLoans", "totalPaid", "remainingBalance"],
-          required: false,
         },
         {
           model: Loan,
           as: "Loans",
-          required: false,
+          separate: true, // 🔥 مهم
           include: [
             {
               model: LoanPayment,
               as: "LoanPayments",
-              attributes: ["id", "amount", "paymentDate", "createdAt"],
-              required: false,
             },
           ],
-          order: [["createdAt", "ASC"]],
         },
       ],
     });
